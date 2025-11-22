@@ -152,6 +152,12 @@ function abrirOperacao(tipo) {
             document.getElementById('divResultado').classList.remove('invisivel');
         }   */
 
+function abrirExtrato(tipo) {
+    window.location.href = `extratos.html?tipo=${tipo}`;
+}
+
+
+        /*
         function abrirExtrato(tipo) {
             document.getElementById('tituloResultado').textContent = `EXTRATO ${tipo.toUpperCase()}`;
             document.getElementById('conteudoResultado').innerHTML = `
@@ -160,7 +166,7 @@ function abrirOperacao(tipo) {
             `;
             document.getElementById('divResultado').classList.remove('invisivel');
             carregarExtrato(tipo);
-        }
+        }     */   
 
         async function carregarExtrato(tipo) {
             // Simulação - carregaria dados reais do Supabase
