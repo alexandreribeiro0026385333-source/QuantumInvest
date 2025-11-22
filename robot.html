@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robô - Quantum Invest</title>
+    <style>
+        body {
+            background: #000;
+            color: gold;
+            font-family: Arial;
+            padding: 20px;
+            text-align: center;
+        }
+        .caixa {
+            border: 1px solid gold;
+            padding: 15px;
+            border-radius: 10px;
+            width: 330px;
+            margin: 15px auto;
+            background: #111;
+            box-shadow: 0 0 12px gold;
+        }
+        input, button {
+            width: 90%;
+            padding: 10px;
+            margin: 8px;
+            border-radius: 6px;
+            border: 1px solid gold;
+            background: #000;
+            color: gold;
+        }
+        button {
+            background: #111;
+            cursor: pointer;
+        }
+        button:hover {
+            background: gold;
+            color: black;
+        }
+        .voltar {
+            display: block;
+            margin-top: 20px;
+            color: gold;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="titulo">Assistente Virtual</div>
+
+    <div class="caixa">
+        <input id="robotNome" readonly>
+        <input id="robotMensagem" readonly>
+        <button id="btnEnviarRobot">Enviar Requisição</button>
+        <div id="mensagemRobot" style="margin-top: 10px;"></div>
+    </div>
+
+    <a href="painel.html" class="voltar">← Voltar ao Painel</a>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Configuração Supabase
+        const SUPABASE_URL = 'https://lpkhscatjrllfscqmxka.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxwa2hzY2F0anJsbGZzY3FteGthIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NzU3MjYsImV4cCI6MjA3OTE1MTcyNn0.HlNIZFU2kq2-pyq0PgBxFX1Kg1iKldF_Y3thWKzYBnM';
+        
+        let supabase;
+        let usuario;
+        let operacao;
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            
+            // Pega parâmetro da operação (depositar, sacar, etc)
+            const urlParams = new URLSearchParams(window.location.search);
+            operacao = urlParams.get('op') || 'ajuda';
+            
+            // Verifica se usuário está logado
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            usuario = user;
+            carregarRobot();
+            
+            // Botão Enviar
+            document.getElementById('btnEnviarRobot').addEventListener('click', enviarRequisicao);
+        });
+
+        function carregarRobot() {
+            document.getElementById('robotNome').value = usuario.email;
+            document.getElementById('robotMensagem').value = `Requisição de ${operacao}`;
+        }
+
+        async function enviarRequisicao() {
+            const nome = document.getElementById('robotNome').value;
+            const msg = document.getElementById('robotMensagem').value;
+            
+            try {
+                // Atualiza a mensagem no Supabase
+                const { data, error } = await supabase
+                    .from('banco')
+                    .update({ mensagem: msg })
+                    .eq('email', nome);
+                
+                if (error) throw error;
+                
+                mostrarMensagem(`✅ Requisição de ${operacao} enviada! Aguarde nosso atendente.`);
+                
+            } catch (error) {
+                mostrarMensagem('❌ Erro ao enviar requisição: ' + error.message);
+            }
+        }
+
+        function mostrarMensagem(msg) {
+            const div = document.getElementById('mensagemRobot');
+            div.textContent = msg;
+            div.style.color = msg.includes('❌') ? 'red' : 'green';
+        }
+    </script>
+</body>
+</html>
