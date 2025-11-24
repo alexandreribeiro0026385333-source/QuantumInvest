@@ -1,1 +1,151 @@
-ext vomta 
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extrato Conta - Quantum Invest</title>
+    <style>
+        body {
+            background: #000;
+            color: gold;
+            font-family: Arial;
+            padding: 20px;
+            text-align: center;
+        }
+        .caixa {
+            border: 1px solid gold;
+            padding: 15px;
+            border-radius: 10px;
+            width: 330px;
+            margin: 15px auto;
+            background: #111;
+            box-shadow: 0 0 12px gold;
+        }
+        input, button, .btn-link {
+            width: 90%;
+            padding: 12px;
+            margin: 5px;
+            border-radius: 8px;
+            border: 1px solid gold;
+            background: #000;
+            color: gold;
+        }
+        button, .btn-link {
+            background: #111;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+        }
+        button:hover, .btn-link:hover {
+            background: gold;
+            color: black;
+        }
+        .voltar {
+            display: block;
+            margin-top: 20px;
+            color: gold;
+            text-decoration: none;
+        }
+        .info-usuario {
+            background: #222;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: left;
+        }
+        .login-box {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="titulo">Extrato da Conta</div>
+
+    <!-- LOGIN -->
+    <div class="caixa login-box">
+        <h3>Acessar Extrato da Conta</h3>
+        <input type="email" id="emailLogin" placeholder="Digite seu email">
+        <input type="password" id="senhaLogin" placeholder="Digite sua senha">
+        <button onclick="carregarExtratoConta()">Carregar Extrato</button>
+        <div id="mensagemLogin" style="margin-top: 10px;"></div>
+    </div>
+
+    <!-- EXTRATO CONTA -->
+    <div class="caixa">
+        <h3>Extrato da Conta Corrente</h3>
+        <div id="extratoConta" class="info-usuario">
+            Faça login para ver o extrato da conta
+        </div>
+    </div>
+
+    <a href="painel.html" class="voltar">← Voltar para Painel</a>
+
+    <script>
+        const SUPABASE_URL = 'https://lpkhscatjrllfscqmxka.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxwa2hzY2F0anJsbGZzY3FteGthIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NzU3MjYsImV4cCI6MjA3OTE1MTcyNn0.HlNIZFU2kq2-pyq0PgBxFX1Kg1iKldF_Y3thWKzYBnM';
+
+        async function carregarExtratoConta() {
+            const email = document.getElementById('emailLogin').value.trim();
+            const senha = document.getElementById('senhaLogin').value.trim();
+            
+            document.getElementById('mensagemLogin').textContent = '';
+            document.getElementById('extratoConta').innerHTML = 'Carregando...';
+            
+            if (!email || !senha) {
+                document.getElementById('mensagemLogin').textContent = 'Digite email e senha!';
+                document.getElementById('extratoConta').innerHTML = 'Faça login para ver o extrato da conta';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/banco?email=eq.${encodeURIComponent(email)}`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const usuarios = await response.json();
+                
+                if (usuarios.length === 0) {
+                    document.getElementById('mensagemLogin').textContent = 'Email não encontrado!';
+                    document.getElementById('extratoConta').innerHTML = 'Faça login para ver o extrato da conta';
+                    return;
+                }
+                
+                const usuario = usuarios[0];
+                if (usuario.senha !== senha) {
+                    document.getElementById('mensagemLogin').textContent = 'Senha incorreta!';
+                    document.getElementById('extratoConta').innerHTML = 'Faça login para ver o extrato da conta';
+                    return;
+                }
+                
+                // EXTRATO CONTA
+                const dataAtual = new Date().toLocaleDateString();
+                let html = `<h4>📊 Extrato da Conta Corrente</h4>`;
+                html += `<p><strong>Data do Extrato:</strong> ${dataAtual}</p>`;
+                html += `<p><strong>Data de Início:</strong> ${usuario.datadinicio || 'Não informada'}</p>`;
+                html += `<hr>`;
+                html += `<p><strong>💳 Saldo Disponível:</strong> R$ ${(usuario.saldo || 0).toFixed(2)}</p>`;
+                html += `<p><strong>💰 Poupança:</strong> R$ ${(usuario.poupanca || 0).toFixed(2)}</p>`;
+                html += `<p><strong>📈 Limite do Cartão:</strong> R$ ${(usuario.limite || 0).toFixed(2)}</p>`;
+                html += `<p><strong>💵 Crédito:</strong> R$ ${(usuario.credito || 0).toFixed(2)}</p>`;
+                html += `<p><strong>💸 Débito:</strong> R$ ${(usuario.debito || 0).toFixed(2)}</p>`;
+                html += `<p><strong>🧾 Fatura Atual:</strong> R$ ${(usuario.fatura || 0).toFixed(2)}</p>`;
+                html += `<p><strong>🔑 Chave Pix:</strong> ${usuario.chavepix || 'Não cadastrada'}</p>`;
+                
+                document.getElementById('extratoConta').innerHTML = html;
+                document.getElementById('mensagemLogin').textContent = 'Extrato carregado! ✅';
+                document.getElementById('mensagemLogin').style.color = 'green';
+                
+            } catch (error) {
+                document.getElementById('mensagemLogin').textContent = 'Erro ao carregar extrato!';
+                document.getElementById('extratoConta').innerHTML = 'Faça login para ver o extrato da conta';
+            }
+        }
+    </script>
+</body>
+</html>
