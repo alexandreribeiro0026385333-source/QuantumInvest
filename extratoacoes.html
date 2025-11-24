@@ -1,1 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extrato Ações - Quantum Invest</title>
+    <style>
+        body {
+            background: #000;
+            color: gold;
+            font-family: Arial;
+            padding: 20px;
+            text-align: center;
+        }
+        .caixa {
+            border: 1px solid gold;
+            padding: 15px;
+            border-radius: 10px;
+            width: 330px;
+            margin: 15px auto;
+            background: #111;
+            box-shadow: 0 0 12px gold;
+        }
+        input, button, .btn-link {
+            width: 90%;
+            padding: 12px;
+            margin: 5px;
+            border-radius: 8px;
+            border: 1px solid gold;
+            background: #000;
+            color: gold;
+        }
+        button, .btn-link {
+            background: #111;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+        }
+        button:hover, .btn-link:hover {
+            background: gold;
+            color: black;
+        }
+        .voltar {
+            display: block;
+            margin-top: 20px;
+            color: gold;
+            text-decoration: none;
+        }
+        .info-usuario {
+            background: #222;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: left;
+        }
+        .login-box {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
 
+    <div class="titulo">Extrato de Ações</div>
+
+    <!-- LOGIN -->
+    <div class="caixa login-box">
+        <h3>Acessar Extrato de Ações</h3>
+        <input type="email" id="emailLogin" placeholder="Digite seu email">
+        <input type="password" id="senhaLogin" placeholder="Digite sua senha">
+        <button onclick="carregarExtratoAcoes()">Carregar Extrato</button>
+        <div id="mensagemLogin" style="margin-top: 10px;"></div>
+    </div>
+
+    <!-- EXTRATO AÇÕES -->
+    <div class="caixa">
+        <h3>Extrato de Carteira de Ações</h3>
+        <div id="extratoAcoes" class="info-usuario">
+            Faça login para ver o extrato de ações
+        </div>
+    </div>
+
+    <a href="painel.html" class="voltar">← Voltar para Painel</a>
+
+    <script>
+        const SUPABASE_URL = 'https://lpkhscatjrllfscqmxka.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxwa2hzY2F0anJsbGZzY3FteGthIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NzU3MjYsImV4cCI6MjA3OTE1MTcyNn0.HlNIZFU2kq2-pyq0PgBxFX1Kg1iKldF_Y3thWKzYBnM';
+
+        async function carregarExtratoAcoes() {
+            const email = document.getElementById('emailLogin').value.trim();
+            const senha = document.getElementById('senhaLogin').value.trim();
+            
+            document.getElementById('mensagemLogin').textContent = '';
+            document.getElementById('extratoAcoes').innerHTML = 'Carregando...';
+            
+            if (!email || !senha) {
+                document.getElementById('mensagemLogin').textContent = 'Digite email e senha!';
+                document.getElementById('extratoAcoes').innerHTML = 'Faça login para ver o extrato de ações';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/banco?email=eq.${encodeURIComponent(email)}`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const usuarios = await response.json();
+                
+                if (usuarios.length === 0) {
+                    document.getElementById('mensagemLogin').textContent = 'Email não encontrado!';
+                    document.getElementById('extratoAcoes').innerHTML = 'Faça login para ver o extrato de ações';
+                    return;
+                }
+                
+                const usuario = usuarios[0];
+                if (usuario.senha !== senha) {
+                    document.getElementById('mensagemLogin').textContent = 'Senha incorreta!';
+                    document.getElementById('extratoAcoes').innerHTML = 'Faça login para ver o extrato de ações';
+                    return;
+                }
+                
+                // EXTRATO AÇÕES
+                const dataAtual = new Date().toLocaleDateString();
+                let html = `<h4>📈 Extrato de Carteira de Ações</h4>`;
+                html += `<p><strong>Data do Extrato:</strong> ${dataAtual}</p>`;
+                html += `<p><strong>Data de Início Ações:</strong> ${usuario.datainicioacao || 'Não investido'}</p>`;
+                html += `<hr>`;
+                html += `<p><strong>💼 Capital Investido:</strong> R$ ${(usuario.capital || 0).toFixed(2)}</p>`;
+                html += `<p><strong>💰 Montante Atual:</strong> R$ ${(usuario.montante || 0).toFixed(2)}</p>`;
+                html += `<p><strong>📊 Cota (%):</strong> ${(usuario.cota || 0).toFixed(1)}%</p>`;
+                html += `<p><strong>🎯 Lucro/Prejuízo:</strong> R$ ${(usuario.lucro || 0).toFixed(2)}</p>`;
+                html += `<p><strong>⚡ Alavancagem:</strong> ${usuario.alavanca || 0}</p>`;
+                html += `<p><strong>🔄 Valor para Comprar:</strong> R$ ${(usuario.comprar || 0).toFixed(2)}</p>`;
+                html += `<p><strong>💸 Valor para Vender:</strong> R$ ${(usuario.vender || 0).toFixed(2)}</p>`;
+                html += `<p><strong>🏦 IPO:</strong> R$ ${(usuario.ipo || 0).toFixed(2)}</p>`;
+                html += `<p><strong>📋 Follow-on:</strong> R$ ${(usuario.followon || 0).toFixed(2)}</p>`;
+                html += `<p><strong>🔢 Valor por Unidade:</strong> R$ ${(usuario.valorunidade || 0).toFixed(2)}</p>`;
+                html += `<p><strong>📝 Tipo:</strong> ${usuario.tipo || 'Não definido'}</p>`;
+                
+                // Calcula performance
+                const capital = usuario.capital || 0;
+                const montante = usuario.montante || 0;
+                if (capital > 0) {
+                    const performance = ((montante - capital) / capital) * 100;
+                    html += `<p><strong>🚀 Performance:</strong> ${performance.toFixed(2)}%</p>`;
+                }
+                
+                document.getElementById('extratoAcoes').innerHTML = html;
+                document.getElementById('mensagemLogin').textContent = 'Extrato de ações carregado! ✅';
+                document.getElementById('mensagemLogin').style.color = 'green';
+                
+            } catch (error) {
+                document.getElementById('mensagemLogin').textContent = 'Erro ao carregar extrato!';
+                document.getElementById('extratoAcoes').innerHTML = 'Faça login para ver o extrato de ações';
+            }
+        }
+    </script>
+</body>
+</html>
