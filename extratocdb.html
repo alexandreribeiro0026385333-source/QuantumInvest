@@ -1,1 +1,159 @@
-rxt cdb
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extrato CDB - Quantum Invest</title>
+    <style>
+        body {
+            background: #000;
+            color: gold;
+            font-family: Arial;
+            padding: 20px;
+            text-align: center;
+        }
+        .caixa {
+            border: 1px solid gold;
+            padding: 15px;
+            border-radius: 10px;
+            width: 330px;
+            margin: 15px auto;
+            background: #111;
+            box-shadow: 0 0 12px gold;
+        }
+        input, button, .btn-link {
+            width: 90%;
+            padding: 12px;
+            margin: 5px;
+            border-radius: 8px;
+            border: 1px solid gold;
+            background: #000;
+            color: gold;
+        }
+        button, .btn-link {
+            background: #111;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+        }
+        button:hover, .btn-link:hover {
+            background: gold;
+            color: black;
+        }
+        .voltar {
+            display: block;
+            margin-top: 20px;
+            color: gold;
+            text-decoration: none;
+        }
+        .info-usuario {
+            background: #222;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: left;
+        }
+        .login-box {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="titulo">Extrato CDB</div>
+
+    <!-- LOGIN -->
+    <div class="caixa login-box">
+        <h3>Acessar Extrato CDB</h3>
+        <input type="email" id="emailLogin" placeholder="Digite seu email">
+        <input type="password" id="senhaLogin" placeholder="Digite sua senha">
+        <button onclick="carregarExtratoCDB()">Carregar Extrato</button>
+        <div id="mensagemLogin" style="margin-top: 10px;"></div>
+    </div>
+
+    <!-- EXTRATO CDB -->
+    <div class="caixa">
+        <h3>Extrato de Investimentos CDB</h3>
+        <div id="extratoCDB" class="info-usuario">
+            Faça login para ver o extrato CDB
+        </div>
+    </div>
+
+    <a href="painel.html" class="voltar">← Voltar para Painel</a>
+
+    <script>
+        const SUPABASE_URL = 'https://lpkhscatjrllfscqmxka.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxwa2hzY2F0anJsbGZzY3FteGthIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NzU3MjYsImV4cCI6MjA3OTE1MTcyNn0.HlNIZFU2kq2-pyq0PgBxFX1Kg1iKldF_Y3thWKzYBnM';
+
+        async function carregarExtratoCDB() {
+            const email = document.getElementById('emailLogin').value.trim();
+            const senha = document.getElementById('senhaLogin').value.trim();
+            
+            document.getElementById('mensagemLogin').textContent = '';
+            document.getElementById('extratoCDB').innerHTML = 'Carregando...';
+            
+            if (!email || !senha) {
+                document.getElementById('mensagemLogin').textContent = 'Digite email e senha!';
+                document.getElementById('extratoCDB').innerHTML = 'Faça login para ver o extrato CDB';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/banco?email=eq.${encodeURIComponent(email)}`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const usuarios = await response.json();
+                
+                if (usuarios.length === 0) {
+                    document.getElementById('mensagemLogin').textContent = 'Email não encontrado!';
+                    document.getElementById('extratoCDB').innerHTML = 'Faça login para ver o extrato CDB';
+                    return;
+                }
+                
+                const usuario = usuarios[0];
+                if (usuario.senha !== senha) {
+                    document.getElementById('mensagemLogin').textContent = 'Senha incorreta!';
+                    document.getElementById('extratoCDB').innerHTML = 'Faça login para ver o extrato CDB';
+                    return;
+                }
+                
+                // EXTRATO CDB
+                const dataAtual = new Date().toLocaleDateString();
+                let html = `<h4>🏦 Extrato CDB</h4>`;
+                html += `<p><strong>Data do Extrato:</strong> ${dataAtual}</p>`;
+                html += `<p><strong>Data de Início CDB:</strong> ${usuario.datainiciocdb || 'Não aplicado'}</p>`;
+                html += `<hr>`;
+                html += `<p><strong>💵 Valor Aplicado:</strong> R$ ${(usuario.aplicar || 0).toFixed(2)}</p>`;
+                html += `<p><strong>📈 Rendimento Acumulado:</strong> R$ ${(usuario.rendimento || 0).toFixed(2)}</p>`;
+                html += `<p><strong>💰 Lucro Total:</strong> R$ ${(usuario.lucro || 0).toFixed(2)}</p>`;
+                html += `<p><strong>🔄 Valor para Resgatar:</strong> R$ ${(usuario.resgatar || 0).toFixed(2)}</p>`;
+                html += `<p><strong>📊 Juros (%):</strong> ${((usuario.juros || 0) * 100).toFixed(1)}%</p>`;
+                html += `<p><strong>⏳ Carência (dias):</strong> ${usuario.carencia || 30}</p>`;
+                html += `<p><strong>📅 Prazo:</strong> ${usuario.prazo || 'Não definido'}</p>`;
+                
+                // Calcula dias desde início
+                if (usuario.datainiciocdb) {
+                    const dataInicio = new Date(usuario.datainiciocdb);
+                    const dataAtual = new Date();
+                    const diffDays = Math.floor((dataAtual - dataInicio) / (1000 * 60 * 60 * 24));
+                    html += `<p><strong>📆 Dias desde aplicação:</strong> ${diffDays}</p>`;
+                }
+                
+                document.getElementById('extratoCDB').innerHTML = html;
+                document.getElementById('mensagemLogin').textContent = 'Extrato CDB carregado! ✅';
+                document.getElementById('mensagemLogin').style.color = 'green';
+                
+            } catch (error) {
+                document.getElementById('mensagemLogin').textContent = 'Erro ao carregar extrato!';
+                document.getElementById('extratoCDB').innerHTML = 'Faça login para ver o extrato CDB';
+            }
+        }
+    </script>
+</body>
+</html>
