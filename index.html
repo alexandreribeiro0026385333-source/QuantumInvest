@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Invest</title>
+    <style>
+        body {
+            background: #000;
+            color: gold;
+            font-family: Arial;
+            padding: 20px;
+            text-align: center;
+        }
+        .caixa {
+            border: 1px solid gold;
+            padding: 15px;
+            border-radius: 10px;
+            width: 330px;
+            margin: auto;
+            background: #111;
+            box-shadow: 0 0 12px gold;
+        }
+        input, button, .btn-link {
+            width: 90%;
+            padding: 10px;
+            margin: 8px;
+            border-radius: 6px;
+            border: 1px solid gold;
+            background: #000;
+            color: gold;
+        }
+        button, .btn-link {
+            background: #111;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+        }
+        button:hover, .btn-link:hover {
+            background: gold;
+            color: black;
+        }
+        .invisivel {
+            display: none;
+        }
+        .titulo {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 0 0 12px gold;
+        }
+        .descri {
+            margin-top: 35px;
+            font-size: 14px;
+            color: gold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="titulo">Quantum Invest</div>
+
+    <!-- LOGIN -->
+    <div class="caixa">
+        <input id="emailLogin" placeholder="Email">
+        <input id="senhaLogin" type="password" placeholder="Senha">
+
+        <button id="btnEntrar">Entrar</button>
+        <a href="cadastro.html" class="btn-link">Cadastrar</a>
+        <button id="btnLimpar">Limpar campos</button>
+        <a href="robot.html" class="btn-link">Ajuda (Robô)</a>
+    </div>
+
+    <!-- MENSAGEM -->
+    <div id="divMensagem" class="caixa invisivel" style="margin-top: 15px;"></div>
+
+    <!-- DESCRIÇÃO FIXA -->
+    <div class="descri">
+        <b>Quantum Invest</b><br>
+        Desenvolvido com IA — o futuro é agora!<br><br>
+
+        Contato:<br>
+        zozimofreitas3@gmail.com<br>
+        fakegab01@gmail.com<br>
+        WhatsApp: 21 99910-2951<br><br>
+
+        Quem somos? Fintech Quantum Invest<br><br>
+
+        © Alexandre Ribeiro, André Bonotto, ChatGPT5, DeepSeek, Gemini Google
+    </div>
+
+    <script>
+        // Configuração Supabase
+        const SUPABASE_URL = 'https://lpkhscatjrllfscqmxka.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxwa2hzY2F0anJsbGZzY3FteGthIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NzU3MjYsImV4cCI6MjA3OTE1MTcyNn0.HlNIZFU2kq2-pyq0PgBxFX1Kg1iKldF_Y3thWKzYBnM';
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Botão Entrar
+            document.getElementById('btnEntrar').addEventListener('click', fazerLogin);
+            
+            // Botão Limpar
+            document.getElementById('btnLimpar').addEventListener('click', function() {
+                document.getElementById('emailLogin').value = '';
+                document.getElementById('senhaLogin').value = '';
+                mostrarMensagem('Campos limpos! ✅');
+            });
+        });
+
+        async function fazerLogin() {
+            const email = document.getElementById('emailLogin').value.trim();
+            const senha = document.getElementById('senhaLogin').value.trim();
+            
+            if (!email || !senha) {
+                mostrarMensagem('Preencha email e senha!');
+                return;
+            }
+            
+            try {
+                mostrarMensagem('Verificando...');
+                
+                // Busca usuário na tabela banco
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/banco?email=eq.${encodeURIComponent(email)}`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const usuarios = await response.json();
+                
+                // Verifica se encontrou usuário e se senha bate
+                if (usuarios.length === 0) {
+                    throw new Error('Email não encontrado!');
+                }
+                
+                const usuario = usuarios[0];
+                if (usuario.senha !== senha) {
+                    throw new Error('Senha incorreta!');
+                }
+                
+                // Email e senha corretos - VAI PARA PAINEL
+                mostrarMensagem('Login realizado! ✅ Redirecionando...', 'green');
+                setTimeout(() => {
+                    window.location.href = 'painel.html';
+                }, 1500);
+                
+            } catch (error) {
+                mostrarMensagem('Erro: ' + error.message, 'red');
+            }
+        }
+
+        function mostrarMensagem(msg, cor = 'gold') {
+            const div = document.getElementById('divMensagem');
+            div.textContent = msg;
+            div.style.color = cor;
+            div.classList.remove('invisivel');
+            setTimeout(() => div.classList.add('invisivel'), 4000);
+        }
+    </script>
+</body>
+</html>
