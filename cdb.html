@@ -1,1 +1,323 @@
-cdb
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CDB - Quantum Invest</title>
+    <style>
+        body {
+            background: #000;
+            color: gold;
+            font-family: Arial;
+            padding: 20px;
+            text-align: center;
+        }
+        .caixa {
+            border: 1px solid gold;
+            padding: 15px;
+            border-radius: 10px;
+            width: 330px;
+            margin: 15px auto;
+            background: #111;
+            box-shadow: 0 0 12px gold;
+        }
+        input, button, .btn-link {
+            width: 90%;
+            padding: 10px;
+            margin: 8px;
+            border-radius: 6px;
+            border: 1px solid gold;
+            background: #000;
+            color: gold;
+        }
+        button, .btn-link {
+            background: #111;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+        }
+        button:hover, .btn-link:hover {
+            background: gold;
+            color: black;
+        }
+        .saldo-info {
+            background: #222;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .voltar {
+            display: block;
+            margin-top: 20px;
+            color: gold;
+            text-decoration: none;
+        }
+        .login-box {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="titulo">CDB - Quantum Invest</div>
+
+    <!-- LOGIN -->
+    <div class="caixa login-box">
+        <h3>Acessar CDB</h3>
+        <input type="email" id="emailLogin" placeholder="Digite seu email">
+        <input type="password" id="senhaLogin" placeholder="Digite sua senha">
+        <button onclick="fazerLogin()">Acessar CDB</button>
+        <div id="mensagemLogin" style="margin-top: 10px;"></div>
+    </div>
+
+    <!-- CDB -->
+    <div class="caixa" id="cdbSection" style="display: none;">
+        <h3>Seus Investimentos CDB</h3>
+        
+        <div class="saldo-info">
+            <p><strong>Saldo Disponível:</strong> <span id="saldoDisplay">R$ 0,00</span></p>
+            <p><strong>Valor Aplicado:</strong> <span id="aplicarDisplay">R$ 0,00</span></p>
+            <p><strong>Rendimento:</strong> <span id="rendimentoDisplay">R$ 0,00</span></p>
+            <p><strong>Lucro:</strong> <span id="lucroDisplay">R$ 0,00</span></p>
+            <p><strong>Dias até Resgate:</strong> <span id="diasRestantes">-</span></p>
+        </div>
+
+        <input type="number" id="valorOperacao" placeholder="Valor R$" step="0.01" min="0">
+        
+        <button id="btnAplicar">Aplicar em CDB</button>
+        <button id="btnResgatar">Resgatar do CDB</button>
+        
+        <div id="mensagem" style="margin-top: 10px;"></div>
+    </div>
+
+    <a href="painel.html" class="voltar">← Voltar para Painel</a>
+
+    <script>
+        // Configuração Supabase
+        const SUPABASE_URL = 'https://lpkhscatjrllfscqmxka.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxwa2hzY2F0anJsbGZzY3FteGthIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NzU3MjYsImV4cCI6MjA3OTE1MTcyNn0.HlNIZFU2kq2-pyq0PgBxFX1Kg1iKldF_Y3thWKzYBnM';
+        
+        let dadosUsuario;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Event listeners
+            document.getElementById('btnAplicar').addEventListener('click', aplicarCDB);
+            document.getElementById('btnResgatar').addEventListener('click', resgatarCDB);
+        });
+
+        async function fazerLogin() {
+            const email = document.getElementById('emailLogin').value.trim();
+            const senha = document.getElementById('senhaLogin').value.trim();
+            
+            if (!email || !senha) {
+                mostrarMensagemLogin('Digite email e senha!', 'red');
+                return;
+            }
+            
+            try {
+                mostrarMensagemLogin('Verificando...');
+                
+                // Busca usuário na tabela banco
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/banco?email=eq.${encodeURIComponent(email)}`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const usuarios = await response.json();
+                
+                // Verifica se encontrou usuário e se senha bate
+                if (usuarios.length === 0) {
+                    throw new Error('Email não encontrado!');
+                }
+                
+                const usuario = usuarios[0];
+                if (usuario.senha !== senha) {
+                    throw new Error('Senha incorreta!');
+                }
+                
+                // Login bem-sucedido
+                dadosUsuario = usuario;
+                document.getElementById('cdbSection').style.display = 'block';
+                mostrarMensagemLogin('Acesso permitido! ✅', 'green');
+                atualizarDisplay();
+                calcularDiasRestantes();
+                
+            } catch (error) {
+                mostrarMensagemLogin('Erro: ' + error.message, 'red');
+                document.getElementById('cdbSection').style.display = 'none';
+            }
+        }
+
+        function atualizarDisplay() {
+            document.getElementById('saldoDisplay').textContent = 
+                'R$ ' + (dadosUsuario.saldo || 0).toFixed(2);
+            document.getElementById('aplicarDisplay').textContent = 
+                'R$ ' + (dadosUsuario.aplicar || 0).toFixed(2);
+            document.getElementById('rendimentoDisplay').textContent = 
+                'R$ ' + (dadosUsuario.rendimento || 0).toFixed(2);
+            document.getElementById('lucroDisplay').textContent = 
+                'R$ ' + (dadosUsuario.lucro || 0).toFixed(2);
+        }
+
+        function calcularDiasRestantes() {
+            if (!dadosUsuario.datainiciocdb) {
+                document.getElementById('diasRestantes').textContent = 'Não aplicado';
+                return;
+            }
+            
+            const dataInicio = new Date(dadosUsuario.datainiciocdb);
+            const dataAtual = new Date();
+            const diffTime = dataAtual - dataInicio;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const diasRestantes = Math.max(0, 30 - diffDays);
+            
+            document.getElementById('diasRestantes').textContent = 
+                diffDays >= 30 ? 'Pode resgatar' : `${diasRestantes} dias`;
+        }
+
+        async function aplicarCDB() {
+            const valor = parseFloat(document.getElementById('valorOperacao').value);
+            
+            if (!valor || valor <= 0) {
+                mostrarMensagem('Digite um valor válido!', 'red');
+                return;
+            }
+            
+            if (valor > dadosUsuario.saldo) {
+                mostrarMensagem('Saldo insuficiente!', 'red');
+                return;
+            }
+            
+            try {
+                // Atualiza TODOS os campos
+                const updateData = { ...dadosUsuario };
+                
+                // Operação APLICAR
+                updateData.saldo -= valor;
+                updateData.aplicar += valor;
+                updateData.rendimento += valor;
+                
+                // Se é primeira aplicação, define data início
+                if (!updateData.datainiciocdb) {
+                    updateData.datainiciocdb = new Date().toISOString().split('T')[0];
+                }
+                
+                // Atualiza extrato
+                updateData.extratocdb = (updateData.extratocdb || 0) + valor;
+                
+                // Faz UPDATE com TODOS os campos
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/banco?id=eq.${dadosUsuario.id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+                
+                if (!response.ok) throw new Error('Erro na aplicação');
+                
+                // Atualiza dados locais
+                dadosUsuario = updateData;
+                mostrarMensagem(`Aplicação de R$ ${valor.toFixed(2)} realizada! ✅`, 'green');
+                document.getElementById('valorOperacao').value = '';
+                atualizarDisplay();
+                
+            } catch (error) {
+                mostrarMensagem('Erro na aplicação: ' + error.message, 'red');
+            }
+        }
+
+        async function resgatarCDB() {
+            const valor = parseFloat(document.getElementById('valorOperacao').value);
+            
+            if (!valor || valor <= 0) {
+                mostrarMensagem('Digite um valor válido!', 'red');
+                return;
+            }
+            
+            // Verifica carência de 30 dias
+            if (dadosUsuario.datainiciocdb) {
+                const dataInicio = new Date(dadosUsuario.datainiciocdb);
+                const dataAtual = new Date();
+                const diffDays = Math.floor((dataAtual - dataInicio) / (1000 * 60 * 60 * 24));
+                
+                if (diffDays < 30) {
+                    mostrarMensagem(`Carência: ${30 - diffDays} dias restantes! ⏳`, 'red');
+                    return;
+                }
+            }
+            
+            const totalCDB = (dadosUsuario.aplicar || 0) + (dadosUsuario.rendimento || 0) + (dadosUsuario.lucro || 0);
+            if (valor > totalCDB) {
+                mostrarMensagem('Valor maior que o total aplicado!', 'red');
+                return;
+            }
+            
+            try {
+                const updateData = { ...dadosUsuario };
+                
+                // Calcula proporção para debitar de cada campo
+                const proporcao = valor / totalCDB;
+                
+                // Debita proporcionalmente
+                updateData.aplicar -= (dadosUsuario.aplicar || 0) * proporcao;
+                updateData.rendimento -= (dadosUsuario.rendimento || 0) * proporcao;
+                updateData.lucro -= (dadosUsuario.lucro || 0) * proporcao;
+                
+                // Credita no saldo
+                updateData.saldo += valor;
+                
+                // Atualiza extrato
+                updateData.extratocdb = (updateData.extratocdb || 0) - valor;
+                
+                // Garante que não fique negativo
+                updateData.aplicar = Math.max(0, updateData.aplicar);
+                updateData.rendimento = Math.max(0, updateData.rendimento);
+                updateData.lucro = Math.max(0, updateData.lucro);
+                
+                // UPDATE com TODOS os campos
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/banco?id=eq.${dadosUsuario.id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+                
+                if (!response.ok) throw new Error('Erro no resgate');
+                
+                // Atualiza dados locais
+                dadosUsuario = updateData;
+                mostrarMensagem(`Resgate de R$ ${valor.toFixed(2)} realizado! ✅`, 'green');
+                document.getElementById('valorOperacao').value = '';
+                atualizarDisplay();
+                
+            } catch (error) {
+                mostrarMensagem('Erro no resgate: ' + error.message, 'red');
+            }
+        }
+
+        function mostrarMensagem(msg, cor = 'gold') {
+            const div = document.getElementById('mensagem');
+            div.textContent = msg;
+            div.style.color = cor;
+        }
+
+        function mostrarMensagemLogin(msg, cor = 'gold') {
+            const div = document.getElementById('mensagemLogin');
+            div.textContent = msg;
+            div.style.color = cor;
+        }
+    </script>
+</body>
+</html>
