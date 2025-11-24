@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cartão - Quantum Invest</title>
+    <title>Cartão -Black Quantum </title>
     <style>
         body {
             background: #000;
@@ -83,7 +83,13 @@
         🏦 Para liberar teu cartão Black Quantum<br>
         💳 movimentar tua conta corrente Quantum
     </div>
+<!-- BOTÃO EXTRATO -->
+<div class="caixa">
+    <button onclick="abrirExtratoCartao()">📊 Ver Extrato do Cartão</button>
+</div>
 
+
+    
     <!-- LOGIN -->
     <div class="caixa login-box">
         <h3>Acessar Cartão</h3>
@@ -295,6 +301,57 @@
             div.textContent = msg;
             div.style.color = cor;
         }
+
+// ABRIR EXTRATO DO CARTÃO
+function abrirExtratoCartao() {
+    // Verifica se usuário está logado
+    if (!dadosUsuario) {
+        mostrarMensagem('Faça login primeiro!', 'red');
+        return;
+    }
+    
+    // Cria div do extrato se não existir
+    let extratoDiv = document.getElementById('extratoCartao');
+    if (!extratoDiv) {
+        extratoDiv = document.createElement('div');
+        extratoDiv.id = 'extratoCartao';
+        extratoDiv.className = 'caixa';
+        extratoDiv.style.marginTop = '15px';
+        
+        // Insere após a seção do cartão
+        document.getElementById('cartaoSection').parentNode.insertBefore(extratoDiv, document.getElementById('cartaoSection').nextSibling);
+    }
+    
+    // Gera extrato do cartão
+    const dataAtual = new Date().toLocaleDateString();
+    let html = `<h4>📊 Extrato do Cartão Quantum Black</h4>`;
+    html += `<p><strong>Data do Extrato:</strong> ${dataAtual}</p>`;
+    html += `<p><strong>Data de Início:</strong> ${dadosUsuario.datainiciocartao || 'Não definida'}</p>`;
+    html += `<hr>`;
+    html += `<p><strong>💳 Limite Total:</strong> R$ ${(dadosUsuario.limite || 0).toFixed(2)}</p>`;
+    html += `<p><strong>📈 Créditos:</strong> R$ ${(dadosUsuario.credito || 0).toFixed(2)}</p>`;
+    html += `<p><strong>📉 Débitos:</strong> R$ ${(dadosUsuario.debito || 0).toFixed(2)}</p>`;
+    html += `<p><strong>🧾 Fatura Atual:</strong> R$ ${(dadosUsuario.fatura || 0).toFixed(2)}</p>`;
+    html += `<p><strong>💵 Saldo Disponível no Cartão:</strong> R$ ${((dadosUsuario.limite || 0) - (dadosUsuario.fatura || 0)).toFixed(2)}</p>`;
+    html += `<button onclick="fecharExtratoCartao()" style="margin-top: 10px;">Fechar Extrato</button>`;
+    
+    extratoDiv.innerHTML = html;
+    extratoDiv.style.display = 'block';
+}
+
+// FECHAR EXTRATO DO CARTÃO
+function fecharExtratoCartao() {
+    const extratoDiv = document.getElementById('extratoCartao');
+    if (extratoDiv) {
+        extratoDiv.style.display = 'none';
+    }
+        }
+
+
+
+
+
+        
     </script>
 </body>
 </html>
