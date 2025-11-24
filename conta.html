@@ -1,1 +1,291 @@
-conta
+conta<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conta - Quantum Invest</title>
+    <style>
+        body {
+            background: #000;
+            color: gold;
+            font-family: Arial;
+            padding: 20px;
+            text-align: center;
+        }
+        .caixa {
+            border: 1px solid gold;
+            padding: 15px;
+            border-radius: 10px;
+            width: 330px;
+            margin: 15px auto;
+            background: #111;
+            box-shadow: 0 0 12px gold;
+        }
+        input, button, .btn-link {
+            width: 90%;
+            padding: 10px;
+            margin: 8px;
+            border-radius: 6px;
+            border: 1px solid gold;
+            background: #000;
+            color: gold;
+        }
+        button, .btn-link {
+            background: #111;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+        }
+        button:hover, .btn-link:hover {
+            background: gold;
+            color: black;
+        }
+        .saldo-info {
+            background: #222;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .voltar {
+            display: block;
+            margin-top: 20px;
+            color: gold;
+            text-decoration: none;
+        }
+        .login-box {
+            margin-bottom: 20px;
+        }
+        .botoes-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="titulo">Conta Corrente - Quantum Invest</div>
+
+    <!-- LOGIN -->
+    <div class="caixa login-box">
+        <h3>Acessar Conta</h3>
+        <input type="email" id="emailLogin" placeholder="Digite seu email">
+        <input type="password" id="senhaLogin" placeholder="Digite sua senha">
+        <button onclick="fazerLogin()">Acessar Conta</button>
+        <div id="mensagemLogin" style="margin-top: 10px;"></div>
+    </div>
+
+    <!-- CONTA -->
+    <div class="caixa" id="contaSection" style="display: none;">
+        <h3>Sua Conta Corrente</h3>
+        
+        <div class="saldo-info">
+            <p><strong>Saldo Disponível:</strong> <span id="saldoDisplay">R$ 0,00</span></p>
+            <p><strong>Poupança:</strong> <span id="poupancaDisplay">R$ 0,00</span></p>
+        </div>
+
+        <!-- BOTÕES DEPOSITAR/SACAR -->
+        <div class="botoes-grid">
+            <button onclick="enviarRequisicao('depositar')">Depositar</button>
+            <button onclick="enviarRequisicao('sacar')">Sacar</button>
+        </div>
+
+        <!-- TRANSFERÊNCIA SALDO ↔ POUPANÇA -->
+        <h4>Transferir</h4>
+        <input type="number" id="valorTransferencia" placeholder="Valor R$" step="0.01" min="0">
+        <div class="botoes-grid">
+            <button onclick="transferirParaPoupanca()">Saldo → Poupança</button>
+            <button onclick="transferirParaSaldo()">Poupança → Saldo</button>
+        </div>
+        
+        <div id="mensagem" style="margin-top: 10px;"></div>
+    </div>
+
+    <a href="painel.html" class="voltar">← Voltar para Painel</a>
+
+    <script>
+        // Configuração Supabase
+        const SUPABASE_URL = 'https://lpkhscatjrllfscqmxka.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxwa2hzY2F0anJsbGZzY3FteGthIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NzU3MjYsImV4cCI6MjA3OTE1MTcyNn0.HlNIZFU2kq2-pyq0PgBxFX1Kg1iKldF_Y3thWKzYBnM';
+        
+        let dadosUsuario;
+
+        async function fazerLogin() {
+            const email = document.getElementById('emailLogin').value.trim();
+            const senha = document.getElementById('senhaLogin').value.trim();
+            
+            if (!email || !senha) {
+                mostrarMensagemLogin('Digite email e senha!', 'red');
+                return;
+            }
+            
+            try {
+                mostrarMensagemLogin('Verificando...');
+                
+                // Busca usuário na tabela banco
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/banco?email=eq.${encodeURIComponent(email)}`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const usuarios = await response.json();
+                
+                // Verifica se encontrou usuário e se senha bate
+                if (usuarios.length === 0) {
+                    throw new Error('Email não encontrado!');
+                }
+                
+                const usuario = usuarios[0];
+                if (usuario.senha !== senha) {
+                    throw new Error('Senha incorreta!');
+                }
+                
+                // Login bem-sucedido
+                dadosUsuario = usuario;
+                document.getElementById('contaSection').style.display = 'block';
+                mostrarMensagemLogin('Acesso permitido! ✅', 'green');
+                atualizarDisplay();
+                
+            } catch (error) {
+                mostrarMensagemLogin('Erro: ' + error.message, 'red');
+                document.getElementById('contaSection').style.display = 'none';
+            }
+        }
+
+        function atualizarDisplay() {
+            document.getElementById('saldoDisplay').textContent = 
+                'R$ ' + (dadosUsuario.saldo || 0).toFixed(2);
+            document.getElementById('poupancaDisplay').textContent = 
+                'R$ ' + (dadosUsuario.poupanca || 0).toFixed(2);
+        }
+
+        // FUNÇÃO IGUAL AO ROBÔ - DEPOSITAR/SACAR
+        async function enviarRequisicao(operacao) {
+            try {
+                // Atualiza a mensagem no Supabase (igual robô)
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/banco?email=eq.${dadosUsuario.email}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify({
+                        mensagem: `Requisição de ${operacao}`
+                    })
+                });
+                
+                if (!response.ok) throw new Error('Erro ao enviar requisição');
+                
+                mostrarMensagem(`✅ Requisição de ${operacao} enviada! Aguarde nosso atendente.`);
+                
+            } catch (error) {
+                mostrarMensagem('❌ Erro ao enviar requisição: ' + error.message);
+            }
+        }
+
+        // TRANSFERIR SALDO → POUPANÇA
+        async function transferirParaPoupanca() {
+            const valor = parseFloat(document.getElementById('valorTransferencia').value);
+            
+            if (!valor || valor <= 0) {
+                mostrarMensagem('Digite um valor válido!', 'red');
+                return;
+            }
+            
+            if (valor > dadosUsuario.saldo) {
+                mostrarMensagem('Saldo insuficiente!', 'red');
+                return;
+            }
+            
+            try {
+                const updateData = { ...dadosUsuario };
+                updateData.saldo -= valor;
+                updateData.poupanca += valor;
+                
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/banco?id=eq.${dadosUsuario.id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+                
+                if (!response.ok) throw new Error('Erro na transferência');
+                
+                dadosUsuario = updateData;
+                mostrarMensagem(`Transferência de R$ ${valor.toFixed(2)} para poupança realizada! ✅`, 'green');
+                document.getElementById('valorTransferencia').value = '';
+                atualizarDisplay();
+                
+            } catch (error) {
+                mostrarMensagem('Erro na transferência: ' + error.message, 'red');
+            }
+        }
+
+        // TRANSFERIR POUPANÇA → SALDO
+        async function transferirParaSaldo() {
+            const valor = parseFloat(document.getElementById('valorTransferencia').value);
+            
+            if (!valor || valor <= 0) {
+                mostrarMensagem('Digite um valor válido!', 'red');
+                return;
+            }
+            
+            if (valor > dadosUsuario.poupanca) {
+                mostrarMensagem('Saldo na poupança insuficiente!', 'red');
+                return;
+            }
+            
+            try {
+                const updateData = { ...dadosUsuario };
+                updateData.poupanca -= valor;
+                updateData.saldo += valor;
+                
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/banco?id=eq.${dadosUsuario.id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+                
+                if (!response.ok) throw new Error('Erro na transferência');
+                
+                dadosUsuario = updateData;
+                mostrarMensagem(`Transferência de R$ ${valor.toFixed(2)} para saldo realizada! ✅`, 'green');
+                document.getElementById('valorTransferencia').value = '';
+                atualizarDisplay();
+                
+            } catch (error) {
+                mostrarMensagem('Erro na transferência: ' + error.message, 'red');
+            }
+        }
+
+        function mostrarMensagem(msg, cor = 'gold') {
+            const div = document.getElementById('mensagem');
+            div.textContent = msg;
+            div.style.color = cor;
+        }
+
+        function mostrarMensagemLogin(msg, cor = 'gold') {
+            const div = document.getElementById('mensagemLogin');
+            div.textContent = msg;
+            div.style.color = cor;
+        }
+    </script>
+</body>
+</html>
