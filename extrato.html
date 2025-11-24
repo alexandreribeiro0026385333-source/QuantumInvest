@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extratos - Quantum Invest</title>
+    <style>
+        body {
+            background: #000;
+            color: gold;
+            font-family: Arial;
+            padding: 20px;
+            text-align: center;
+        }
+        .caixa {
+            border: 1px solid gold;
+            padding: 15px;
+            border-radius: 10px;
+            width: 330px;
+            margin: 15px auto;
+            background: #111;
+            box-shadow: 0 0 12px gold;
+        }
+        input, button, .btn-link {
+            width: 90%;
+            padding: 12px;
+            margin: 5px;
+            border-radius: 8px;
+            border: 1px solid gold;
+            background: #000;
+            color: gold;
+        }
+        button, .btn-link {
+            background: #111;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+        }
+        button:hover, .btn-link:hover {
+            background: gold;
+            color: black;
+        }
+        .voltar {
+            display: block;
+            margin-top: 20px;
+            color: gold;
+            text-decoration: none;
+        }
+        .info-usuario {
+            background: #222;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: left;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .login-box {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="titulo">Histórico Completo</div>
+
+    <!-- LOGIN -->
+    <div class="caixa login-box">
+        <h3>Acessar Histórico</h3>
+        <input type="email" id="emailLogin" placeholder="Digite seu email">
+        <input type="password" id="senhaLogin" placeholder="Digite sua senha">
+        <button onclick="carregarDadosUsuario()">Carregar Histórico</button>
+        <div id="mensagemLogin" style="margin-top: 10px;"></div>
+    </div>
+
+    <!-- HISTÓRICO COMPLETO -->
+    <div class="caixa">
+        <h3>Histórico Completo - Todos os Dados</h3>
+        <div id="infoUsuario" class="info-usuario">
+            Faça login para ver seu histórico completo
+        </div>
+    </div>
+
+    <a href="painel.html" class="voltar">← Voltar para Painel</a>
+
+    <script>
+        // Configuração Supabase
+        const SUPABASE_URL = 'https://lpkhscatjrllfscqmxka.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxwa2hzY2F0anJsbGZzY3FteGthIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NzU3MjYsImV4cCI6MjA3OTE1MTcyNn0.HlNIZFU2kq2-pyq0PgBxFX1Kg1iKldF_Y3thWKzYBnM';
+
+        async function carregarDadosUsuario() {
+            const email = document.getElementById('emailLogin').value.trim();
+            const senha = document.getElementById('senhaLogin').value.trim();
+            
+            document.getElementById('mensagemLogin').textContent = '';
+            document.getElementById('infoUsuario').innerHTML = 'Carregando...';
+            
+            if (!email || !senha) {
+                document.getElementById('mensagemLogin').textContent = 'Digite email e senha!';
+                document.getElementById('infoUsuario').innerHTML = 'Faça login para ver seu histórico completo';
+                return;
+            }
+            
+            try {
+                // Busca usuário na tabela banco
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/banco?email=eq.${encodeURIComponent(email)}`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const usuarios = await response.json();
+                
+                // Verifica se encontrou usuário e se senha bate
+                if (usuarios.length === 0) {
+                    document.getElementById('mensagemLogin').textContent = 'Email não encontrado!';
+                    document.getElementById('infoUsuario').innerHTML = 'Faça login para ver seu histórico completo';
+                    return;
+                }
+                
+                const usuario = usuarios[0];
+                if (usuario.senha !== senha) {
+                    document.getElementById('mensagemLogin').textContent = 'Senha incorreta!';
+                    document.getElementById('infoUsuario').innerHTML = 'Faça login para ver seu histórico completo';
+                    return;
+                }
+                
+                // Login bem-sucedido - MOSTRA TABELA COMPLETA
+                let html = `<h3>TABELA COMPLETA - HISTÓRICO</h3>`;
+                
+                // Adiciona TODOS os campos da tabela
+                html += `<p><strong>id:</strong> ${usuario.id || ''}</p>`;
+                html += `<p><strong>nome:</strong> ${usuario.nome || ''}</p>`;
+                html += `<p><strong>cpf:</strong> ${usuario.cpf || ''}</p>`;
+                html += `<p><strong>email:</strong> ${usuario.email || ''}</p>`;
+                html += `<p><strong>telefone:</strong> ${usuario.telefone || ''}</p>`;
+                html += `<p><strong>senha:</strong> ${usuario.senha || ''}</p>`;
+                html += `<p><strong>chavepix:</strong> ${usuario.chavepix || ''}</p>`;
+                html += `<p><strong>poupanca:</strong> ${usuario.poupanca || 0}</p>`;
+                html += `<p><strong>depositar:</strong> ${usuario.depositar || 0}</p>`;
+                html += `<p><strong>sacar:</strong> ${usuario.sacar || 0}</p>`;
+                html += `<p><strong>mensagem:</strong> ${usuario.mensagem || ''}</p>`;
+                html += `<p><strong>saldo:</strong> ${usuario.saldo || 0}</p>`;
+                html += `<p><strong>extratoconta:</strong> ${usuario.extratoconta || 0}</p>`;
+                html += `<p><strong>datadinicio:</strong> ${usuario.datadinicio || ''}</p>`;
+                html += `<p><strong>cdb:</strong> ${usuario.cdb || ''}</p>`;
+                html += `<p><strong>aplicar:</strong> ${usuario.aplicar || 0}</p>`;
+                html += `<p><strong>resgatar:</strong> ${usuario.resgatar || 0}</p>`;
+                html += `<p><strong>prazo:</strong> ${usuario.prazo || 0}</p>`;
+                html += `<p><strong>carencia:</strong> ${usuario.carencia || 0}</p>`;
+                html += `<p><strong>juros:</strong> ${usuario.juros || 0}</p>`;
+                html += `<p><strong>rendimento:</strong> ${usuario.rendimento || 0}</p>`;
+                html += `<p><strong>lucro:</strong> ${usuario.lucro || 0}</p>`;
+                html += `<p><strong>extrtatocdb:</strong> ${usuario.extrtatocdb || 0}</p>`;
+                html += `<p><strong>datainiciocdb:</strong> ${usuario.datainiciocdb || ''}</p>`;
+                html += `<p><strong>ipo:</strong> ${usuario.ipo || 0}</p>`;
+                html += `<p><strong>followon:</strong> ${usuario.followon || 0}</p>`;
+                html += `<p><strong>valorunidade:</strong> ${usuario.valorunidade || 0}</p>`;
+                html += `<p><strong>tipo:</strong> ${usuario.tipo || ''}</p>`;
+                html += `<p><strong>comprar:</strong> ${usuario.comprar || 0}</p>`;
+                html += `<p><strong>vender:</strong> ${usuario.vender || 0}</p>`;
+                html += `<p><strong>cota:</strong> ${usuario.cota || 0}</p>`;
+                html += `<p><strong>capital:</strong> ${usuario.capital || 0}</p>`;
+                html += `<p><strong>montante:</strong> ${usuario.montante || 0}</p>`;
+                html += `<p><strong>extratoacao:</strong> ${usuario.extratoacao || 0}</p>`;
+                html += `<p><strong>alavanca:</strong> ${usuario.alavanca || 0}</p>`;
+                html += `<p><strong>datainicioacao:</strong> ${usuario.datainicioacao || ''}</p>`;
+                html += `<p><strong>limite:</strong> ${usuario.limite || 0}</p>`;
+                html += `<p><strong>cartao:</strong> ${usuario.cartao || ''}</p>`;
+                html += `<p><strong>credito:</strong> ${usuario.credito || 0}</p>`;
+                html += `<p><strong>debito:</strong> ${usuario.debito || 0}</p>`;
+                html += `<p><strong>fatura:</strong> ${usuario.fatura || 0}</p>`;
+                html += `<p><strong>extratocartao:</strong> ${usuario.extratocartao || 0}</p>`;
+                html += `<p><strong>datainiciocartao:</strong> ${usuario.datainiciocartao || ''}</p>`;
+                html += `<p><strong>hitorico:</strong> ${usuario.hitorico || ''}</p>`;
+                
+                document.getElementById('infoUsuario').innerHTML = html;
+                document.getElementById('mensagemLogin').textContent = 'Histórico carregado! ✅';
+                document.getElementById('mensagemLogin').style.color = 'green';
+                
+            } catch (error) {
+                document.getElementById('mensagemLogin').textContent = 'Erro ao carregar histórico!';
+                document.getElementById('infoUsuario').innerHTML = 'Faça login para ver seu histórico completo';
+            }
+        }
+    </script>
+</body>
+</html>
