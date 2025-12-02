@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Transferência Quantum → PTC</title>
+<style>
+body {
+    background: #000;
+    color: gold;
+    font-family: Arial;
+    text-align: center;
+    padding: 20px;
+}
+input, button {
+    width: 90%;
+    padding: 10px;
+    margin: 8px;
+    border-radius: 6px;
+    border: 1px solid gold;
+    background: #000;
+    color: gold;
+}
+button:hover { background: gold; color: #000; }
+.caixa {
+    border: 1px solid gold;
+    width: 330px;
+    margin: 10px auto;
+    padding: 20px;
+    background: #111;
+    border-radius: 10px;
+}
+</style>
+</head>
+<body>
+
+<div class="caixa">
+    <h2>Transferir para o PTC</h2>
+    <input type="number" id="valor" placeholder="Valor R$" step="0.01">
+    <input type="text" id="userPTC" placeholder="ID do usuário PTC">
+    <button onclick="transferir()">Transferir</button>
+    <p id="msg"></p>
+</div>
+
+<script src="transferencia.js"></script>
+
+</body>
+</html>
