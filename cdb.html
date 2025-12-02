@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CDB - Quantum Invest</title>
+    <style>
+        body {
+            background: #000;
+            color: gold;
+            font-family: Arial;
+            padding: 20px;
+            text-align: center;
+        }
+        .caixa {
+            border: 1px solid gold;
+            padding: 15px;
+            border-radius: 10px;
+            width: 330px;
+            margin: 15px auto;
+            background: #111;
+            box-shadow: 0 0 12px gold;
+        }
+        input, button {
+            width: 90%;
+            padding: 10px;
+            margin: 8px;
+            border-radius: 6px;
+            border: 1px solid gold;
+            background: #000;
+            color: gold;
+        }
+        button:hover {
+            background: gold;
+            color: black;
+        }
+        .saldo-info {
+            background: #222;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="titulo">CDB - Quantum Invest</div>
+
+    <!-- LOGIN -->
+    <div class="caixa" id="loginBox">
+        <h3>Acessar CDB</h3>
+        <input type="email" id="emailLogin" placeholder="Digite seu email">
+        <input type="password" id="senhaLogin" placeholder="Digite sua senha">
+        <button onclick="fazerLogin()">Acessar CDB</button>
+        <div id="mensagemLogin"></div>
+    </div>
+
+    <!-- CDB -->
+    <div class="caixa" id="cdbSection" style="display: none;">
+        <h3>Seus Investimentos CDB</h3>
+        
+        <div class="saldo-info">
+            <p><strong>Saldo Disponível:</strong> <span id="saldoDisplay">R$ 0,00</span></p>
+            <p><strong>Valor Aplicado:</strong> <span id="aplicarDisplay">R$ 0,00</span></p>
+            <p><strong>Rendimento:</strong> <span id="rendimentoDisplay">R$ 0,00</span></p>
+            <p><strong>Lucro:</strong> <span id="lucroDisplay">R$ 0,00</span></p>
+            <p><strong>Dias até Resgate:</strong> <span id="diasRestantes">-</span></p>
+        </div>
+
+        <input type="number" id="valorOperacao" placeholder="Valor R$" step="0.01" min="0">
+        
+        <button onclick="aplicarCDB()">Aplicar em CDB</button>
+        <button onclick="resgatarCDB()">Resgatar do CDB</button>
+        
+        <div id="mensagem"></div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://lpkhscatjrllfscqmxka.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxwa2hzY2F0anJsbGZzY3FteGthIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NzU3MjYsImV4cCI6MjA3OTE1MTcyNn0.HlNIZFU2kq2-pyq0PgBxFX1Kg1iKldF_Y3thWKzYBnM';
+
+        let dadosUsuario = null;
+
+        async function fazerLogin() {
+            const email = emailLogin.value.trim();
+            const senha = senhaLogin.value.trim();
+
+            if (!email || !senha) {
+                mostrarMensagemLogin("Digite email e senha!", "red");
+                return;
+            }
+
+            mostrarMensagemLogin("Verificando...");
+
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/banco?email=eq.${email}`, {
+                headers: {
+                    apikey: SUPABASE_KEY,
+                    Authorization: `Bearer ${SUPABASE_KEY}`
+                }
+            });
+
+            const data = await res.json();
+
+            if (data.length === 0) {
+                mostrarMensagemLogin("Email não encontrado!", "red");
+                return;
+            }
+
+            const user = data[0];
+
+            if (user.senha !== senha) {
+                mostrarMensagemLogin("Senha incorreta!", "red");
+                return;
+            }
+
+            // Garantir que os números sejam realmente números
+            user.saldo = Number(user.saldo);
+            user.aplicar = Number(user.aplicar);
+            user.rendimento = Number(user.rendimento);
+            user.lucro = Number(user.lucro);
+            user.extratocdb = Number(user.extratocdb);
+
+            dadosUsuario = user;
+
+            loginBox.style.display = "none";
+            cdbSection.style.display = "block";
+
+            atualizarDisplay();
+            calcularDiasRestantes();
+        }
+
+        function atualizarDisplay() {
+            saldoDisplay.textContent = "R$ " + dadosUsuario.saldo.toFixed(2);
+            aplicarDisplay.textContent = "R$ " + dadosUsuario.aplicar.toFixed(2);
+            rendimentoDisplay.textContent = "R$ " + dadosUsuario.rendimento.toFixed(2);
+            lucroDisplay.textContent = "R$ " + dadosUsuario.lucro.toFixed(2);
+        }
+
+        function calcularDiasRestantes() {
+            if (!dadosUsuario.datainiciocdb) {
+                diasRestantes.textContent = "Não aplicado";
+                return;
+            }
+
+            const inicio = new Date(dadosUsuario.datainiciocdb);
+            const hoje = new Date();
+            const diff = Math.floor((hoje - inicio) / 86400000);
+
+            diasRestantes.textContent = diff >= 30 ? "Pode resgatar" : `${30 - diff} dias`;
+        }
+
+        async function aplicarCDB() {
+            const valor = Number(valorOperacao.value);
+
+            if (!valor || valor <= 0) {
+                mostrarMensagem("Digite um valor válido!", "red");
+                return;
+            }
+            if (valor > dadosUsuario.saldo) {
+                mostrarMensagem("Saldo insuficiente!", "red");
+                return;
+            }
+
+            // Cálculo
+            dadosUsuario.saldo -= valor;
+            dadosUsuario.aplicar += valor;
+            dadosUsuario.rendimento += valor;
+            dadosUsuario.extratocdb += valor;
+
+            if (!dadosUsuario.datainiciocdb) {
+                dadosUsuario.datainiciocdb = new Date().toISOString().split("T")[0];
+            }
+
+            await atualizarBanco();
+
+            mostrarMensagem(`Aplicação de R$ ${valor.toFixed(2)} realizada!`, "green");
+            valorOperacao.value = "";
+            atualizarDisplay();
+        }
+
+        async function resgatarCDB() {
+            const valor = Number(valorOperacao.value);
+
+            if (!valor || valor <= 0) {
+                mostrarMensagem("Digite um valor válido!", "red");
+                return;
+            }
+
+            const total = dadosUsuario.aplicar + dadosUsuario.rendimento + dadosUsuario.lucro;
+
+            if (valor > total) {
+                mostrarMensagem("Valor maior que o total aplicado!", "red");
+                return;
+            }
+
+            const inicio = new Date(dadosUsuario.datainiciocdb);
+            const hoje = new Date();
+            const diff = Math.floor((hoje - inicio) / 86400000);
+
+            if (diff < 30) {
+                mostrarMensagem(`Carência: faltam ${30 - diff} dias!`, "red");
+                return;
+            }
+
+            const proporcao = valor / total;
+
+            dadosUsuario.aplicar -= dadosUsuario.aplicar * proporcao;
+            dadosUsuario.rendimento -= dadosUsuario.rendimento * proporcao;
+            dadosUsuario.lucro -= dadosUsuario.lucro * proporcao;
+
+            dadosUsuario.saldo += valor;
+            dadosUsuario.extratocdb -= valor;
+
+            await atualizarBanco();
+
+            mostrarMensagem(`Resgate de R$ ${valor.toFixed(2)} realizado!`, "green");
+            valorOperacao.value = "";
+            atualizarDisplay();
+        }
+
+        async function atualizarBanco() {
+            // ENVIA APENAS CAMPOS VÁLIDOS DO BANCO
+            const body = {
+                saldo: dadosUsuario.saldo,
+                aplicar: dadosUsuario.aplicar,
+                rendimento: dadosUsuario.rendimento,
+                lucro: dadosUsuario.lucro,
+                extratocdb: dadosUsuario.extratocdb,
+                datainiciocdb: dadosUsuario.datainiciocdb
+            };
+
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/banco?id=eq.${dadosUsuario.id}`, {
+                method: "PATCH",
+                headers: {
+                    apikey: SUPABASE_KEY,
+                    Authorization: `Bearer ${SUPABASE_KEY}`,
+                    "Content-Type": "application/json",
+                    Prefer: "return=representation"
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (!res.ok) {
+                mostrarMensagem("Erro ao atualizar banco!", "red");
+            }
+        }
+
+        function mostrarMensagem(msg, cor = "gold") {
+            mensagem.textContent = msg;
+            mensagem.style.color = cor;
+        }
+
+        function mostrarMensagemLogin(msg, cor = "gold") {
+            mensagemLogin.textContent = msg;
+            mensagemLogin.style.color = cor;
+        }
+    </script>
+
+</body>
+</html>
