@@ -11,7 +11,7 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Arial, sans-serif;
         }
-        
+
         body {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             color: #fff;
@@ -21,7 +21,7 @@
             align-items: center;
             padding: 20px;
         }
-        
+
         .container {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -33,19 +33,19 @@
             text-align: center;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         h1 {
             margin-bottom: 10px;
             color: #4cc9f0;
             font-size: 28px;
         }
-        
+
         .subtitle {
             color: #b8b8b8;
             margin-bottom: 30px;
             font-size: 16px;
         }
-        
+
         .qr-container {
             background: white;
             padding: 20px;
@@ -54,11 +54,12 @@
             display: inline-block;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
         }
-        
+
         #qrcode {
-            margin: 0 auto;
+            width: 250px;
+            height: 250px;
         }
-        
+
         .payment-info {
             background: rgba(0, 0, 0, 0.3);
             padding: 20px;
@@ -66,7 +67,7 @@
             margin: 25px 0;
             text-align: left;
         }
-        
+
         .info-item {
             margin: 10px 0;
             display: flex;
@@ -74,21 +75,21 @@
             padding: 8px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         .info-label {
             color: #a0a0a0;
             font-weight: 500;
         }
-        
+
         .info-value {
             color: #fff;
             font-weight: 600;
         }
-        
+
         .sms-section {
             margin-top: 30px;
         }
-        
+
         .sms-btn {
             background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
             color: white;
@@ -108,36 +109,36 @@
             transition: all 0.3s ease;
             box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
         }
-        
+
         .sms-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 20px rgba(67, 97, 238, 0.6);
         }
-        
+
         .sms-btn:active {
             transform: translateY(0);
         }
-        
+
         .whatsapp-btn {
             background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
             margin-top: 15px;
         }
-        
+
         .whatsapp-btn:hover {
             box-shadow: 0 8px 20px rgba(37, 211, 102, 0.6);
         }
-        
+
         .icon {
             font-size: 24px;
         }
-        
+
         .instructions {
             color: #b8b8b8;
             font-size: 14px;
             margin-top: 25px;
             line-height: 1.5;
         }
-        
+
         .phone-number {
             background: rgba(255, 255, 255, 0.1);
             padding: 12px 20px;
@@ -148,20 +149,20 @@
             color: #4cc9f0;
             display: inline-block;
         }
-        
+
         @media (max-width: 600px) {
             .container {
                 padding: 25px 20px;
             }
-            
+
             h1 {
                 font-size: 24px;
             }
-            
+
             .qr-container {
                 padding: 15px;
             }
-            
+
             .sms-btn {
                 padding: 16px 20px;
                 font-size: 16px;
@@ -177,7 +178,7 @@
         <p class="subtitle">Escaneie o QR Code abaixo ou envie uma mensagem</p>
         
         <div class="qr-container">
-            <div id="qrcode"></div>
+            <img id="qrcode" />
         </div>
         
         <div class="phone-number">+55 21 97227-546</div>
@@ -222,43 +223,30 @@
     </div>
 
     <script>
-        // Dados do PIX conforme fornecido
         const pixData = "00020126390014br.gov.bcb.pix01171680way@gmail.com5204000053039865802BR5917ALEXANDRE RIBEIRO6011NOVA IGUACU62580520SAN2025120212133497750300017br.gov.bcb.brcode01051.0.06304F8F0";
-        
-        // Número de telefone formatado
         const phoneNumber = "+552197227546";
-        
-        // Gerar QR Code
+
         document.addEventListener('DOMContentLoaded', function() {
-            QRCode.toCanvas(document.getElementById('qrcode'), pixData, {
-                width: 250,
-                height: 250,
-                margin: 2,
-                color: {
-                    dark: '#000000',
-                    light: '#FFFFFF'
-                }
-            }, function(error) {
-                if (error) console.error(error);
-            });
-            
-            // Configurar botão de SMS
+            // Gerar QR Code
+            QRCode.toDataURL(pixData, { width: 250, color: { dark: '#000', light: '#fff' } })
+                .then(url => {
+                    document.getElementById('qrcode').src = url;
+                })
+                .catch(err => console.error(err));
+
+            // Enviar SMS (funciona apenas em mobile)
             document.getElementById('smsBtn').addEventListener('click', function() {
                 const message = "Requisição depósito";
                 const smsUrl = `sms:${phoneNumber}?body=${encodeURIComponent(message)}`;
                 window.location.href = smsUrl;
             });
-            
-            // Configurar botão do WhatsApp
+
+            // Abrir WhatsApp
             document.getElementById('whatsappBtn').addEventListener('click', function() {
                 const message = "Requisição depósito";
-                const whatsappUrl = `https://wa.me/${phoneNumber.replace('+', '')}?text=${encodeURIComponent(message)}`;
+                const whatsappUrl = `https://wa.me/${phoneNumber.replace(/\D/g,'')}?text=${encodeURIComponent(message)}`;
                 window.open(whatsappUrl, '_blank');
             });
-            
-            // Adicionar informações de debug no console (apenas para desenvolvimento)
-            console.log("QR Code PIX carregado com sucesso!");
-            console.log("Número para SMS/WhatsApp:", phoneNumber);
         });
     </script>
 </body>
