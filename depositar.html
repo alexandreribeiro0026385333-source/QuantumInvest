@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Depositar - Quantum</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .container {
+    margin-top: 40px;
+    background: #fff;
+    padding: 20px;
+    width: 90%;
+    max-width: 420px;
+    border-radius: 12px;
+    box-shadow: 0 0 12px rgba(0,0,0,0.1);
+  }
+  h2 {
+    text-align: center;
+  }
+  .qr-box {
+    width: 240px;
+    height: 240px;
+    background: #eee;
+    margin: 20px auto;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #888;
+  }
+  input {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin-bottom: 15px;
+  }
+  button {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    background: #0d6efd;
+    border: none;
+    color: #fff;
+    border-radius: 8px;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h2>Depositar</h2>
+
+    <div class="qr-box">QR Code Aqui</div>
+
+    <label>Valor do Depósito:</label>
+    <input type="number" id="valor" placeholder="Digite o valor" />
+
+    <button onclick="enviarSMS()">Depositar</button>
+  </div>
+
+<script>
+function enviarSMS() {
+  const valor = document.getElementById('valor').value;
+  if (!valor) {
+    alert('Digite um valor antes de depositar');
+    return;
+  }
+
+  // Apenas abre o app de SMS com o número preenchido
+  const numero = '+5521970227546';
+  const texto = encodeURIComponent('Depósito iniciado. Valor: R$ ' + valor);
+
+  window.location.href = `sms:${numero}?body=${texto}`;
+}
+</script>
+</body>
+</html>
