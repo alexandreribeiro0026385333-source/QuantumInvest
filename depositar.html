@@ -1,88 +1,265 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Depositar - Quantum</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #f5f5f5;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .container {
-    margin-top: 40px;
-    background: #fff;
-    padding: 20px;
-    width: 90%;
-    max-width: 420px;
-    border-radius: 12px;
-    box-shadow: 0 0 12px rgba(0,0,0,0.1);
-  }
-  h2 {
-    text-align: center;
-  }
-  .qr-box {
-    width: 240px;
-    height: 240px;
-    background: #eee;
-    margin: 20px auto;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    color: #888;
-  }
-  input {
-    width: 100%;
-    padding: 12px;
-    font-size: 16px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    margin-bottom: 15px;
-  }
-  button {
-    width: 100%;
-    padding: 14px;
-    font-size: 16px;
-    background: #0d6efd;
-    border: none;
-    color: #fff;
-    border-radius: 8px;
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code PIX + SMS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1 {
+            margin-bottom: 10px;
+            color: #4cc9f0;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #b8b8b8;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .qr-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 30px 0;
+            display: inline-block;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        #qrcode {
+            margin: 0 auto;
+        }
+        
+        .payment-info {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 25px 0;
+            text-align: left;
+        }
+        
+        .info-item {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .info-label {
+            color: #a0a0a0;
+            font-weight: 500;
+        }
+        
+        .info-value {
+            color: #fff;
+            font-weight: 600;
+        }
+        
+        .sms-section {
+            margin-top: 30px;
+        }
+        
+        .sms-btn {
+            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+            color: white;
+            border: none;
+            padding: 18px 30px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 300px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+        }
+        
+        .sms-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.6);
+        }
+        
+        .sms-btn:active {
+            transform: translateY(0);
+        }
+        
+        .whatsapp-btn {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            margin-top: 15px;
+        }
+        
+        .whatsapp-btn:hover {
+            box-shadow: 0 8px 20px rgba(37, 211, 102, 0.6);
+        }
+        
+        .icon {
+            font-size: 24px;
+        }
+        
+        .instructions {
+            color: #b8b8b8;
+            font-size: 14px;
+            margin-top: 25px;
+            line-height: 1.5;
+        }
+        
+        .phone-number {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #4cc9f0;
+            display: inline-block;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .qr-container {
+                padding: 15px;
+            }
+            
+            .sms-btn {
+                padding: 16px 20px;
+                font-size: 16px;
+            }
+        }
+    </style>
+    <!-- Biblioteca para gerar QR Code -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h2>Depositar</h2>
+    <div class="container">
+        <h1>Pagamento via PIX</h1>
+        <p class="subtitle">Escaneie o QR Code abaixo ou envie uma mensagem</p>
+        
+        <div class="qr-container">
+            <div id="qrcode"></div>
+        </div>
+        
+        <div class="phone-number">+55 21 97227-546</div>
+        
+        <div class="payment-info">
+            <div class="info-item">
+                <span class="info-label">Beneficiário:</span>
+                <span class="info-value">ALEXANDRE RIBEIRO</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Cidade:</span>
+                <span class="info-value">NOVA IGUAÇU</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">ID Transação:</span>
+                <span class="info-value">SAN202512021213349775</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Tipo:</span>
+                <span class="info-value">Requisição de Depósito</span>
+            </div>
+        </div>
+        
+        <div class="sms-section">
+            <button class="sms-btn" id="smsBtn">
+                <span class="icon">📱</span>
+                Enviar SMS
+            </button>
+            
+            <button class="sms-btn whatsapp-btn" id="whatsappBtn">
+                <span class="icon">💬</span>
+                Abrir WhatsApp
+            </button>
+        </div>
+        
+        <p class="instructions">
+            <strong>Instruções:</strong><br>
+            1. Escaneie o QR Code com seu app bancário<br>
+            2. Ou clique em "Enviar SMS" para enviar uma mensagem<br>
+            3. Informe "Requisição depósito" na mensagem
+        </p>
+    </div>
 
-    <div class="qr-box">QR Code:<br>00020126390014br.gov.bcb.pix01171680way@gmail.com5204000053039865802BR5917ALEXANDRE RIBEIRO6011NOVA IGUACU62580520SAN2025120211491260050300017br.gov.bcb.brcode01051.0.06304835E</div>
-
-    <label>Valor do Depósito:</label>
-    <input type="number" id="valor" placeholder="Digite o valor" />
-
-    <button onclick="enviarSMS()">Depositar</button>
-  </div>
-
-<script>
-function enviarSMS() {
-  const valor = document.getElementById('valor').value;
-  if (!valor) {
-    alert('Digite um valor antes de depositar');
-    return;
-  }
-
-  // Apenas abre o app de SMS com o número preenchido
-  const numero = '+5521970227546';
-  const texto = encodeURIComponent('Depósito iniciado. Valor: R$ ' + valor);
-
-  window.location.href = `sms:${numero}?body=${texto}`;
-}
-</script>
+    <script>
+        // Dados do PIX conforme fornecido
+        const pixData = "00020126390014br.gov.bcb.pix01171680way@gmail.com5204000053039865802BR5917ALEXANDRE RIBEIRO6011NOVA IGUACU62580520SAN2025120212133497750300017br.gov.bcb.brcode01051.0.06304F8F0";
+        
+        // Número de telefone formatado
+        const phoneNumber = "+552197227546";
+        
+        // Gerar QR Code
+        document.addEventListener('DOMContentLoaded', function() {
+            QRCode.toCanvas(document.getElementById('qrcode'), pixData, {
+                width: 250,
+                height: 250,
+                margin: 2,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                }
+            }, function(error) {
+                if (error) console.error(error);
+            });
+            
+            // Configurar botão de SMS
+            document.getElementById('smsBtn').addEventListener('click', function() {
+                const message = "Requisição depósito";
+                const smsUrl = `sms:${phoneNumber}?body=${encodeURIComponent(message)}`;
+                window.location.href = smsUrl;
+            });
+            
+            // Configurar botão do WhatsApp
+            document.getElementById('whatsappBtn').addEventListener('click', function() {
+                const message = "Requisição depósito";
+                const whatsappUrl = `https://wa.me/${phoneNumber.replace('+', '')}?text=${encodeURIComponent(message)}`;
+                window.open(whatsappUrl, '_blank');
+            });
+            
+            // Adicionar informações de debug no console (apenas para desenvolvimento)
+            console.log("QR Code PIX carregado com sucesso!");
+            console.log("Número para SMS/WhatsApp:", phoneNumber);
+        });
+    </script>
 </body>
 </html>
