@@ -1,0 +1,271 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Quantum Invest</title>
+<style>
+  body { margin: 0;
+            background: #000;
+            color: gold;
+     font-family: Arial, sans-serif;
+            
+            padding: 20px;
+            text-align: center;
+        }
+  
+  
+  
+
+  /* Botão flutuante para abrir o menu */
+  .menu-btn {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1001;
+    background: #222;
+    color: #ffd54a;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 18px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    transition: background 0.2s;
+  }
+  .menu-btn:hover {
+    background: #333;
+  }
+
+  /* Menu lateral */
+  .side-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 230px;
+    height: 100%;
+    background: rgba(0,0,0,0.85);
+    overflow-y: auto;
+    transform: translateX(-250px);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+    padding-top: 60px;
+    box-shadow: 3px 0 15px rgba(0,0,0,0.6);
+  }
+  .side-menu.open {
+    transform: translateX(0);
+  }
+
+  /* Links do menu */
+  .side-menu a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: #fff;
+    padding: 10px 15px;
+    transition: background 0.2s;
+  }
+  .side-menu a:hover {
+    background: rgba(255,255,255,0.1);
+  }
+
+  .side-menu img {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+    border-radius: 4px;
+  }
+
+  main {
+    padding: 20px;
+    margin-top: 60px;
+  }
+</style>
+  
+   <style>
+        
+        .caixa {
+            border: 1px solid gold;
+            padding: 15px;
+            border-radius: 10px;
+            width: 330px;
+            margin: auto;
+            background: #111;
+            box-shadow: 0 0 12px gold;
+        }
+        input, button, .btn-link {
+            width: 90%;
+            padding: 10px;
+            margin: 8px;
+            border-radius: 6px;
+            border: 1px solid gold;
+            background: #000;
+            color: gold;
+        }
+        button, .btn-link {
+            background: #111;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+        }
+        button:hover, .btn-link:hover {
+            background: gold;
+            color: black;
+        }
+        .invisivel {
+            display: none;
+        }
+        .titulo {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 0 0 12px gold;
+        }
+        .descri {
+            margin-top: 35px;
+            font-size: 14px;
+            color: gold;
+        }
+    </style>
+
+  
+</head>
+<body>
+
+<button class="menu-btn" onclick="toggleMenu()">☰ Menu</button>
+
+<nav class="side-menu" id="menu">
+  <a href="cadastro.html" target="_blank"><img src="linkico.png" alt="">Cadastro</a>
+  <a href="painel.html" target="_blank">  <img src="linkico.png" alt="">Painel</a>
+  <a href="conta.html" target="_blank">   <img src="linkico.png" alt="">Conta</a>
+  <a href="cdb.html" target="_blank">     <img src="linkico.png" alt="">Cdb</a>
+  <a href="acoes.html" target="_blank">   <img src="linkico.png" alt="">Acoes</a>
+  <a href="cartao.html" target="_blank">  <img src="linkico.png" alt="">Cartao</a>
+  <a href="extrato.html" target="_blank"> <img src="linkico.png" alt="">Extrato</a>
+  <a href="index.html" target="_blank">   <img src="linkico.png" alt="">Home</a>
+</nav>
+
+<main>
+  
+  
+    
+   
+
+    <div class="titulo">Quantum Invest</div>
+
+    <!-- LOGIN -->
+    <div class="caixa">
+        <input id="emailLogin" placeholder="Email">
+        <input id="senhaLogin" type="password" placeholder="Senha">
+
+        <button id="btnEntrar">Entrar</button>
+        <a href="cadastro.html" class="btn-link">Cadastrar</a>
+        <button id="btnLimpar">Limpar campos</button>
+        <a href="cartao.html" class="btn-link">Cartão de Crédito     </a>
+    </div>
+
+    <!-- MENSAGEM -->
+    <div id="divMensagem" class="caixa invisivel" style="margin-top: 15px;"></div>
+
+    <!-- DESCRIÇÃO FIXA -->
+    <div class="descri">
+        <b>Quantum Invest</b><br>
+        Desenvolvido com IA — o futuro é agora!<br><br>
+
+        Contato:<br>
+        zozimofreitas3@gmail.com<br>
+        fakegab01@gmail.com<br>
+        WhatsApp: 21 99910-2951<br><br>
+
+        Quem somos? Fintech Quantum Invest<br><br>
+
+        © Alexandre Ribeiro, André Bonotto, ChatGPT5, DeepSeek, Gemini Google
+    </div>
+
+  
+  
+ 
+</main>
+
+<script>
+  function toggleMenu() {
+    document.getElementById('menu').classList.toggle('open');
+  }
+</script>
+  
+  
+    <script>
+        // Configuração Supabase
+        const SUPABASE_URL = 'https://lpkhscatjrllfscqmxka.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxwa2hzY2F0anJsbGZzY3FteGthIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NzU3MjYsImV4cCI6MjA3OTE1MTcyNn0.HlNIZFU2kq2-pyq0PgBxFX1Kg1iKldF_Y3thWKzYBnM';
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Botão Entrar
+            document.getElementById('btnEntrar').addEventListener('click', fazerLogin);
+            
+            // Botão Limpar
+            document.getElementById('btnLimpar').addEventListener('click', function() {
+                document.getElementById('emailLogin').value = '';
+                document.getElementById('senhaLogin').value = '';
+                mostrarMensagem('Campos limpos! ✅');
+            });
+        });
+
+        async function fazerLogin() {
+            const email = document.getElementById('emailLogin').value.trim();
+            const senha = document.getElementById('senhaLogin').value.trim();
+            
+            if (!email || !senha) {
+                mostrarMensagem('Preencha email e senha!');
+                return;
+            }
+            
+            try {
+                mostrarMensagem('Verificando...');
+                
+                // Busca usuário na tabela banco
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/banco?email=eq.${encodeURIComponent(email)}`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const usuarios = await response.json();
+                
+                // Verifica se encontrou usuário e se senha bate
+                if (usuarios.length === 0) {
+                    throw new Error('Email não encontrado!');
+                }
+                
+                const usuario = usuarios[0];
+                if (usuario.senha !== senha) {
+                    throw new Error('Senha incorreta!');
+                }
+                
+                // Email e senha corretos - VAI PARA PAINEL
+                mostrarMensagem('Login realizado! ✅ Redirecionando...', 'green');
+                setTimeout(() => {
+                    window.location.href = 'painel.html';
+                }, 1500);
+                
+            } catch (error) {
+                mostrarMensagem('Erro: ' + error.message, 'red');
+            }
+        }
+
+        function mostrarMensagem(msg, cor = 'gold') {
+            const div = document.getElementById('divMensagem');
+            div.textContent = msg;
+            div.style.color = cor;
+            div.classList.remove('invisivel');
+            setTimeout(() => div.classList.add('invisivel'), 4000);
+        }
+    </script>
+
+</body>
+</html>
