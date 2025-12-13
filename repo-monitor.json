@@ -1,0 +1,38 @@
+{
+  "monitor": {
+    "nome": "QuantumInvest",
+    "gerente_admin": "admin",
+    "email_alerta": "zozimofreitas3@gmail.com",
+    "status": "ativo",
+    "ativo": true
+  },
+
+  "data": {
+    "criado_em": "2025-12-13",
+    "ultima_verificacao": null
+  },
+
+  "arquivos": [
+    { "nome": "api/", "status": "ok" },
+    { "nome": "acoes.html", "status": "ok" },
+    { "nome": "cadastro.html", "status": "ok" },
+    { "nome": "cartao.html", "status": "ok" },
+    { "nome": "cdb.html", "status": "ok" },
+    { "nome": "conta.html", "status": "ok" },
+    { "nome": "contabackup/", "status": "ok" },
+    { "nome": "depositar.html", "status": "ok" },
+    { "nome": "extrato.html", "status": "ok" },
+    { "nome": "extratoacoes.html", "status": "ok" },
+    { "nome": "extratocdb.html", "status": "ok" },
+    { "nome": "extratoconta.html", "status": "ok" },
+    { "nome": "historico-quantum.html", "status": "ok" },
+    { "nome": "index.html", "status": "ok" },
+    { "nome": "linkico.png", "status": "ok" },
+    { "nome": "painel.html", "status": "ok" },
+    { "nome": "robot.html", "status": "ok" },
+    { "nome": "transferencia.html", "status": "ok" },
+    { "nome": "transferencia.js", "status": "ok" }
+  ],
+
+  "historico": []
+}
